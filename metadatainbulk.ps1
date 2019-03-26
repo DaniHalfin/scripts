@@ -1,14 +1,33 @@
 <#  Written by:     daniha
-    Last update:    2/25/19
+    Last update:    3/26/19
 #>
 
-# Define file location vars
-# Needs to be edited based on where you run the script and where you want to save files to
-$sRepoLocation = "C:\CPubGit\it-client"
-$sCSVLocation = "C:\temp\mdreport-itclient.csv"
+Param(
+    # The full path where the script will run
+    [Parameter(Mandatory = $true, Position = 0 , HelpMessage = "Enter the full path under which the script should run.")]
+    [Alias("Path")]
+    #[ValidatePattern("^[a-zA-Z]:\\[\\\S|*\S]?.*$")]
+    [String]
+    $sFilePathParam,
+    # Name of the metadata attribute to change \ add
+    [Parameter(Mandatory = $true, Position = 1 , HelpMessage = "Enter the name of the metadata attribute you'd like to add or change the value of.")]
+    [Alias("Attribute", "att")]
+    [String]
+    $sMDAttributeParam,
+    # Name of the new value assigned to the metadata attribute
+    [Parameter(Mandatory = $true, Position = 2 , HelpMessage = "Enter the new value you'd like to assign to the metadata attribute you've specified.")]
+    [Alias("Value", "NewValue")]
+    [String]
+    $sMDNewValueParam,
+    # Name of the new value assigned to the metadata attribute
+    [Parameter(Mandatory = $false, Position = 3 , HelpMessage = "Enter the old value you'd like to replace for the metadata attribute you've specified.")]
+    [Alias("OldValue")]
+    [String]
+    $sMDOldValueParam
+)
 
 # Recurse through file tree location provided above to find all markdown files
-$lRepoFiles = Get-ChildItem -Path $sRepoLocation -File -Filter "*.md" -Recurse
+$lRepoFiles = Get-ChildItem -Path $sFilePathParam -File -Filter "*.md" -Recurse
 
 <#
 .SYNOPSIS
@@ -25,7 +44,7 @@ Get-Metadata "c:\repo\index.md"
 #>
 function Get-Metadata ($filename)
 {
-    $arrFileMetadata = @{}
+    $htFileMetadata = [ordered]@{}
     
     $sFileContents = Get-Content -Path $filename
     $nNumOfSeparators = 0
@@ -35,74 +54,15 @@ function Get-Metadata ($filename)
         $sCurrLine = $sFileContents[$nLine]
         if (($sCurrLine -notmatch "-") -and ($nNumOfSeparators -eq 0))
         {
-            $arrFileMetadata = @{}
+            $htFileMetadata = @{}
             break
         } elseif ($sCurrLine -notmatch "---") {
             $arrParsedLine = $sCurrLine -split "\s*:\s*"
-            $arrFileMetadata.Add($arrParsedLine[0], $arrParsedLine[1])
+            $htFileMetadata.Add($arrParsedLine[0], $arrParsedLine[1])
         } else { $nNumOfSeparators++ }
     }
-    return $arrFileMetadata
+    return $htFileMetadata
 }
-
-<#
-.SYNOPSIS
-Finds data in hashtable and adds it to row object.
-
-.DESCRIPTION
-Provided with the parsed file metadata hashtable, this function will find the provided tag name and insert it's value to the results table.
-
-.PARAMETER resultobj
-Parsed file metadata hashtable.
-
-.PARAMETER rowobj
-Row object to add data into.
-
-.PARAMETER tagname
-Tag name to lookup.
-
-.EXAMPLE
-Add-TagToRow $htExtractedMD $oExportRow "title"
-#>
-function Add-TagToRow ($resultobj, $rowobj, $tagname)
-{
-    $rowobj | Add-Member -Type NoteProperty -Name $tagname -value $resultobj[$tagname]
-    return $rowobj
-}
-
-# Init export table array
-$arrExportTable = @()
-
-# Loop through all markdown files found in folder structure
-foreach ($file in $lRepoFiles)
-{
-    # Parse file metadata
-    $htExtractedMD = Get-Metadata ($file.FullName)
-
-    # Add data to export table if any metadata is found in the file
-    if ($htExtractedMD.count -notlike 0)
-    {
-        $oExportRow = New-Object psobject
-
-        $oExportRow | Add-Member -Type NoteProperty -Name "File Name" -Value ($file.FullName).SubString(10)
-        Add-TagToRow $htExtractedMD $oExportRow "title"
-        Add-TagToRow $htExtractedMD $oExportRow "author"
-        Add-TagToRow $htExtractedMD $oExportRow "ms.author"
-        Add-TagToRow $htExtractedMD $oExportRow "manager"
-        Add-TagToRow $htExtractedMD $oExportRow "audience"
-        Add-TagToRow $htExtractedMD $oExportRow "ms.topic"
-        Add-TagToRow $htExtractedMD $oExportRow "ms.prod"
-        Add-TagToRow $htExtractedMD $oExportRow "ms.service"
-        Add-TagToRow $htExtractedMD $oExportRow "ms.collection"
-        Add-TagToRow $htExtractedMD $oExportRow "ms.localizationpriority"
-        Add-TagToRow $htExtractedMD $oExportRow "localization_priority"
-
-        $arrExportTable += $oExportRow
-    }
-}
-
-# Export data to CSV based on location provided
-$arrExportTable | Export-Csv $sCSVLocation -NoTypeInformation
 
 function Check-GitInstalled
 {
@@ -117,5 +77,33 @@ function Check-GitInstalled
     }
 }
 
+foreach ($file in $lRepoFiles)
+{
+    # Parse file metadata
+    $htExtractedMD = Get-Metadata ($file.FullName)
 
-# take parameter, take value, check for paramater - if exists replace value, if doesn't exist add parameter and value
+    if ($sMDOldValueParam)
+    {
+        if ($htExtractedMD[$sMDAttributeParam] -match $sMDOldValueParam)
+        {
+            $sOrigin = $sMDAttributeParam + ": " + $htExtractedMD[$sMDAttributeParam]
+            $sUpdate = [string]$sMDAttributeParam + ": " + $sMDNewValueParam
+            (Get-Content $file.FullName) -replace $sOrigin , $sUpdate | Set-Content $file.FullName
+        }
+    } else 
+    {
+        if ($htExtractedMD[$sMDAttributeParam]) 
+        {
+            $sOrigin = $sMDAttributeParam + ": " + $htExtractedMD[$sMDAttributeParam]
+            $sUpdate = $sMDAttributeParam + ": " + $sMDNewValueParam
+            (Get-Content $file.FullName) -replace $sOrigin , $sUpdate | Set-Content $file.FullName
+        } else 
+        {
+            $oLastAttribute = $htExtractedMD.GetEnumerator() | Select-Object -Last 1
+            $sOrigin = $oLastAttribute.name + ": " + $oLastAttribute.value
+            $sUpdate = $sOrigin + "`n" + $sMDAttributeParam + ": " + $sMDNewValueParam
+        
+            (Get-Content $file.FullName) -replace $sOrigin , $sUpdate | Set-Content $file.FullName
+        }
+    }
+}
