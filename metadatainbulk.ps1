@@ -23,8 +23,15 @@ Param(
     [Parameter(Mandatory = $false, Position = 3 , HelpMessage = "Enter the old value you'd like to replace for the metadata attribute you've specified.")]
     [Alias("OldValue")]
     [String]
-    $sMDOldValueParam
+    $sMDOldValueParam,
+    # Name of the branch you'd like to commit to
+    [Parameter(Mandatory = $true, Position = 4 , HelpMessage = "Enter the name of the branch you'd like changes commited to.")]
+    [Alias("BranchName")]
+    [String]
+    $sBranchNameParam
 )
+
+if (Check-GitInstalled) { return "Please install git before you proceed."}
 
 # Recurse through file tree location provided above to find all markdown files
 $lRepoFiles = Get-ChildItem -Path $sFilePathParam -File -Filter "*.md" -Recurse
@@ -107,3 +114,14 @@ foreach ($file in $lRepoFiles)
         }
     }
 }
+
+$sCommitMessage = "Bulk replaced " + $sMDAttributeParam + "to " + $sMDNewValueParam
+
+$sCheckoutCommand = "git checkout"
+$sCommitCommand = "git commit -a -m"
+$sPushCommand = "git push"
+
+Set-Location $sFilePathParam
+& $sCheckoutCommand $sBranchNameParam
+& $sCommitCommand $sCommitMessage
+& $sPushCommand
