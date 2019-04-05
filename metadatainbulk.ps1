@@ -31,7 +31,7 @@ Param(
     $sBranchNameParam
 )
 
-if (Check-GitInstalled) { return "Please install git before you proceed."}
+if (-Not (Check-GitInstalled)) { return "Please install git before you proceed."}
 
 # Recurse through file tree location provided above to find all markdown files
 $lRepoFiles = Get-ChildItem -Path $sFilePathParam -File -Filter "*.md" -Recurse
@@ -117,11 +117,11 @@ foreach ($file in $lRepoFiles)
 
 $sCommitMessage = "Bulk replaced " + $sMDAttributeParam + "to " + $sMDNewValueParam
 
-$sCheckoutCommand = "git checkout"
-$sCommitCommand = "git commit -a -m"
+$sCheckoutCommand = "git checkout " + $sBranchNameParam
+$sCommitCommand = "git commit -a -m" + """$sCommitMessage"""
 $sPushCommand = "git push"
 
 Set-Location $sFilePathParam
-& $sCheckoutCommand $sBranchNameParam
-& $sCommitCommand $sCommitMessage
-& $sPushCommand
+Invoke-Expression $sCheckoutCommand
+Invoke-Expression $sCommitCommand
+Invoke-Expression $sPushCommand
