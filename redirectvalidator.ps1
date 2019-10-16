@@ -27,5 +27,7 @@ foreach ($oFile in $arrFileTree)
       $sRedirectClean = $oRedirect -replace "/","\"
       $oFile.DirectoryName + " matches " + @($sRedirectClean)
       $oFile.DirectoryName + "(?<content>.*)" -match @($sRedirectClean)
+      #[Regex]::Escape($sRedirectClean) -match 'application-management'    
+      #TODO : compare string with \ without throwing an exception
    }
 }
