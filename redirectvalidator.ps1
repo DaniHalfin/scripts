@@ -2,31 +2,20 @@
     Last update:    10/2/2019
 #>
 
-$sRepoPath = 'C:\CPubGit\windows-docs-pr\'
-$sFilePath = $sRepoPath + '.openpublishing.redirection.json'
+## REGEX patterns
+$sLinkInFilePattern     = "\[.*\]\(.*\)"
+$sURLPattern            = "http.*"
+$sInternalPathPattern   = "\/([A-Z]|[a-z])+\/.*"
+$sFileNamePattern       = "([A-Z]|[a-z])+\.([A-Z]|[a-z])+.*"
+$sAnchorPattern         = "(?<![\w\d])#([A-Z]|[a-z])+.*"
 
-function Find-Redirects ($sFileNamePattern, $sPath)
-{
-   $arrFileTree = Get-ChildItem -Path $sPath -Recurse -Exclude "*.json"
-   foreach ($oFile in $arrFileTree)
-   {
-         #switch -File $oFile
-         
+## Env vars
+$sDocsetPath            = 'C:\CPubGit\windows-docs-pr\windows\'
+$sBaseURL               = 'https://docs.microsoft.com/en-us/windows/'
 
-         
-   }
-}
 
-$jsonRedirects = Get-Content $sFilePath | ConvertFrom-Json
-
-$arrFileTree = Get-ChildItem -Path $sRepoPath -Recurse -File -Exclude "*.json"
+$arrFileTree = Get-ChildItem -Path $sDocsetPath -Recurse -File -Exclude "*.json"
 foreach ($oFile in $arrFileTree)
 {
-   foreach ($oRedirect in $jsonRedirects.redirections.source_path)
-   {
-      $sRedirectClean = $oRedirect -replace "/","\"
-      $oFile.DirectoryName + " matches " + @($sRedirectClean)
-
-      if ($sRedirectClean -match ($ofile.DirectoryName -replace [Regex]::Escape($sRepoPath),"")) { break }
-   }
+   Select-String -Path $oFile.FullName -Pattern
 }
