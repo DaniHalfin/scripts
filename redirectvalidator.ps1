@@ -5,6 +5,8 @@
 ## REGEX patterns
 $sLinkInFilePattern        = "(\[.*\]\(.*\))"
 $sValueInBracketsPattern   = "\(([^\[]*)\)"
+
+### Matching patterns
 $sDocsURLPattern           = "https://docs\.microsoft\.com.*"
 $sURLPattern               = "http.*"
 $sInternalPathPattern      = "\/([A-Z]|[a-z])+\/.*"
