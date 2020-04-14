@@ -4,8 +4,8 @@
 
 # Define file location vars
 # Needs to be edited based on where you run the script and where you want to save files to
-$sRepoLocation = "C:\CPubGit\it-client"
-$sCSVLocation = "C:\temp\mdreport-itclient.csv"
+$sRepoLocation = "C:\CPubGit\windows-docs-pr"
+$sCSVLocation = "C:\temp\mdreport-windows-docs-pr.csv"
 
 # Recurse through file tree location provided above to find all markdown files
 $lRepoFiles = Get-ChildItem -Path $sRepoLocation -File -Filter "*.md" -Recurse

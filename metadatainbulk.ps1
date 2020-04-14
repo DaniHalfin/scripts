@@ -59,13 +59,13 @@ function Get-Metadata ($filename)
     for ($nLine =0; $nNumOfSeparators -lt 2; $nLine++)
     {
         $sCurrLine = $sFileContents[$nLine]
-        if (($sCurrLine -notmatch "-") -and ($nNumOfSeparators -eq 0))
+        if (($sCurrLine -notmatch "---") -and ($nNumOfSeparators -eq 0))
         {
             $htFileMetadata = @{}
             break
         } elseif ($sCurrLine -notmatch "---") {
             $arrParsedLine = $sCurrLine -split "\s*:\s*"
-            $htFileMetadata.Add($arrParsedLine[0], $arrParsedLine[1])
+            if ($arrParsedLine.Length -eq 2) { $htFileMetadata.Add($arrParsedLine[0], $arrParsedLine[1]) }
         } else { $nNumOfSeparators++ }
     }
     return $htFileMetadata
@@ -87,7 +87,7 @@ function Check-GitInstalled
 foreach ($file in $lRepoFiles)
 {
     # Parse file metadata
-    $htExtractedMD = Get-Metadata ($file.FullName)
+    if (($htExtractedMD = Get-Metadata ($file.FullName)).Count -eq 0) { continue }
 
     if ($sMDOldValueParam)
     {
@@ -115,7 +115,7 @@ foreach ($file in $lRepoFiles)
     }
 }
 
-$sCommitMessage = "Bulk replaced " + $sMDAttributeParam + "to " + $sMDNewValueParam
+$sCommitMessage = "Bulk replaced " + $sMDAttributeParam + " to " + $sMDNewValueParam
 
 $sCheckoutCommand = "git checkout " + $sBranchNameParam
 $sCommitCommand = "git commit -a -m" + """$sCommitMessage"""

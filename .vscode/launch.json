@@ -27,7 +27,7 @@
             "name": "PowerShell Launch Current File w/Args Prompt",
             "script": "${file}",
             "args": [
-                "-Path C:\\CPubGit\\it-client\\windows\\security\\identity-protection\\hello-for-business -Attribute author -NewValue mapalko -OldValue mikestephens-MS -BranchName dh-metadata-demo"
+                "-Path C:\\CPubGit\\windows-docs-pr\\windows\\client-management\\mdm -Attribute ms.localizationpriority -NewValue medium -BranchName mdfixesv3"
             ],
             "cwd": "${file}"
         },
