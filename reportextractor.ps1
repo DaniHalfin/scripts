@@ -5,7 +5,7 @@
 # Define file location vars and branches to compare
 # Needs to be edited based on where you run the script and where you want to save files to
 # as well as the names of the 2 branches you're comparing
-$sRepoLocation = "C:\repos\microsoft-365-docs-pr\"
+$sRepoLocation = "C:\repos\windows-docs-pr\"
 $sCSVLocation = "C:\temp\changereport.csv"
 $sDefaultBranch = "master"
 $sDiffBranch = "seo-review-v1"
