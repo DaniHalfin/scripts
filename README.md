@@ -1,4 +1,4 @@
-# Scrips and tooling for the docs.microsoft.com platform
+# Scripts and tooling for the docs.microsoft.com platform
 
 Welcome!
 
